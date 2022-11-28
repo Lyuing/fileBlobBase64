@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<style>
+  h4 { padding-left: 24px;}
+  .box{ padding-left: 48px;}
+  .input-file{ display: none;}
+  .input-label{ 
+    display:inline-block; 
+    width: 80px; 
+    height: 80px; 
+    border: 1px dashed #ccc; 
+    border-radius: 4px; 
+    color: #ccc; 
+    font-size: 40px;
+    line-height: 76px;
+    vertical-align: top;
+    text-align: center;
+  }
+  .file-btn{ vertical-align: top;}
+</style>
+<body>
+
+<h4>文件转base64</h4>
+<div class="box">
+    <input type="file" class="input-file" id="fileUpload">
+    <label for="fileUpload" class="input-label">+</label>
+    <textarea name="" id="fileBase64" cols="30" rows="5"></textarea>
+</div>
+<h4>base64转文件</h4>
+<div class="box">
+  <textarea name="" id="base64Input" cols="30" rows="10"></textarea>
+  <button class="file-btn" id="transFile">转为文件</button>
+</div>
+</body>
+<script>
+
+  document.getElementById("fileUpload").onchange = async (e)=>{
+    let files = e.target.files || []
+    const base64str = await blobToBase64(files[0])
+    document.getElementById("fileBase64").value = base64str
+  }
+  document.getElementById("transFile").onclick = ()=>{
+    const val = document.getElementById("base64Input").value
+    downloadFileByBase64(val)
+  }
+  // 下载操作
+  function downloadFileByBase64(base64) {
+
+    let base64Str = base64 || '';
+    let fileType = ''
+    // 是否含前缀
+    let hasPrefix = base64Str.indexOf('base64,') >= 0;
+    if (!hasPrefix) return alert('base64错误');
+    // if (!hasPrefix) {
+    //   base64Str = getBase64Type(fileType) + base64Str;
+    // }
+
+    let blob = base64ToBlob(base64Str);
+    let blobUrl = URL.createObjectURL(blob);
+
+    downloadFile(blobUrl, '');
+  }
+
+  // 获取前缀
+  function getBase64Type(type) {
+    switch (type) {
+      case 'txt': return 'data:text/plain;base64,';
+      case 'doc': return 'data:application/msword;base64,';
+      case 'docx': return 'data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64,';
+      case 'xls': return 'data:application/vnd.ms-excel;base64,';
+      case 'xlsx': return 'data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,';
+      case 'pdf': return 'data:application/pdf;base64,';
+      case 'pptx': return 'data:application/vnd.openxmlformats-officedocument.presentationml.presentation;base64,';
+      case 'ppt': return 'data:application/vnd.ms-powerpoint;base64,';
+      case 'png': return 'data:image/png;base64,';
+      case 'jpg': return 'data:image/jpeg;base64,';
+      case 'gif': return 'data:image/gif;base64,';
+      case 'svg': return 'data:image/svg+xml;base64,';
+      case 'ico': return 'data:image/x-icon;base64,';
+      case 'bmp': return 'data:image/bmp;base64,';
+      case 'csv': return 'data:text/csv;base64,';
+      default: return 'data:application/octet-stream;base64,'
+    }
+  }
+
+  // base64 转 blob
+  function base64ToBlob(base64Str) {
+    let arr = base64Str.split(','), mime = arr[0].match(/:(.*?);/)[1],
+      bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new Blob([u8arr], { type: mime });
+  }
+
+  // blob 转 base64
+  function blobToBase64(blob) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()   // 新建一个FileReader
+      reader.readAsDataURL(blob)  // 读取文件为base64
+      // reader.readAsText(blob)  // 读取文件为普通字符串
+      reader.onload = function (evt) {  // 读取完文件之后会回来这里 这是个异步
+        const fileString = evt.target.result  // 读取文件内容
+        fileString ? resolve(fileString) : reject(evt)
+      }
+    })
+  }
+
+  function downloadFile(url, name) {
+    let a = document.createElement("a");
+    a.setAttribute("href", url);
+    // 加上这句话可下载
+    a.setAttribute("download", name)
+    a.setAttribute("target", "_blank");
+    let clickEvent = document.createEvent("MouseEvents");
+    clickEvent.initEvent("click", true, true);
+    a.dispatchEvent(clickEvent);
+  }
+
+
+</script>
+
+</html>
