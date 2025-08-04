@@ -112,6 +112,11 @@
       }
     })
   }
+  // blob 转 file 对象
+  function convertBlobToFile(blob, fileName) {
+    const file = new File([blob], fileName, { type: blob.type });
+    return file;
+  }
 
   function downloadFile(url, name) {
     let a = document.createElement("a");
@@ -128,3 +133,4 @@
 </script>
 
 </html>
+
